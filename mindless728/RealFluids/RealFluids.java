@@ -28,6 +28,9 @@ import java.io.FileWriter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import java.text.NumberFormat;
+import java.util.Locale;
+
 import java.util.Map;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -107,6 +110,7 @@ public class RealFluids extends JavaPlugin implements Runnable {
 		String s;
 		int i;
 		boolean b;
+
 		try {
 			Scanner scanner = new Scanner(new File(dataFile));
 			while(scanner.hasNext()) {
@@ -144,27 +148,29 @@ public class RealFluids extends JavaPlugin implements Runnable {
 		} catch(FileNotFoundException fnfe) {
 			saveProperties();
 		} catch(Exception e) {
-			saveProperties();
+			//saveProperties();
 			System.out.println("*** RealFluids: Error in configuration file ***");
 		}
 	}
 
 	public void saveProperties() {
+		NumberFormat format = NumberFormat.getInstance();
+		format.setMaximumFractionDigits(2);
 		try {
 			BufferedWriter writer = new BufferedWriter(new FileWriter(dataFile));
 			writer.write("WaterStartLevel: "+waterStartLevel);
 			writer.newLine();
 			writer.write("LavaStartLevel: "+lavaStartLevel);
 			writer.newLine();
-			writer.write("MinimumDifferenceLevelFraction: "+minimumDifferenceLevelFraction);
+			writer.write("MinimumDifferenceLevelFraction: "+ format.format(minimumDifferenceLevelFraction) );
 			writer.newLine();
 			writer.write("RepeatRate: "+repeatRate);
 			writer.newLine();
 			writer.write("MaxFlowTimePerRepeat: "+maxFlowTimePerRepeat);
 			writer.newLine();
-			writer.write("SimsPerRepeatFraction: "+simsPerRepeatFraction);
+			writer.write("SimsPerRepeatFraction: "+ format.format(simsPerRepeatFraction) );
 			writer.newLine();
-			writer.write("FlowDownFraction: "+flowDownFraction);
+			writer.write("FlowDownFraction: "+ format.format(flowDownFraction) );
 			writer.newLine();
 			writer.write("ChunkCacheSize: "+chunkCacheSize);
 			writer.newLine();
