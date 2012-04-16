@@ -1,9 +1,11 @@
 package mindless728.RealFluids;
 
 import org.bukkit.event.Event;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Cancellable;
 
 public class RealFlowEvent extends Event implements Cancellable {
+	private static final HandlerList handlers = new HandlerList();
 	private static RealFluids plugin;
 	private RealFluidsBlock block;
 	private RealFluidsFlowType flow;
@@ -12,10 +14,18 @@ public class RealFlowEvent extends Event implements Cancellable {
 	private long timeCreated;
 	
 	RealFlowEvent(RealFluidsBlock b) {
-		super("RealFlowEvent");
+		//super("RealFlowEvent");
 		block = b;
 		flow = null;
 		cancelled = false;
+	}
+ 
+	public HandlerList getHandlers() {
+		return handlers;
+	}
+ 
+	public static HandlerList getHandlerList() {
+		return handlers;
 	}
 	
 	public static void setPlugin(RealFluids p) {

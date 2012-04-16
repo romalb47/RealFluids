@@ -5,9 +5,15 @@
 
 package mindless728.RealFluids;
 
+import org.bukkit.Bukkit;
+
 import org.bukkit.block.Block;
 //import org.bukkit.block.BlockDamageLevel;
-import org.bukkit.event.block.BlockListener;
+
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockFromToEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
@@ -16,14 +22,15 @@ import org.bukkit.event.block.BlockPlaceEvent;
  *
  * @author colin
  */
-public class RealFluidsBlockListener extends BlockListener {
+public class RealFluidsBlockListener implements Listener {
     RealFluids plugin;
     
     RealFluidsBlockListener(RealFluids p) {
-        plugin = p;
+	plugin = p;
+	Bukkit.getServer().getPluginManager().registerEvents(this, plugin);
     }
     
-    @Override
+    @EventHandler(priority = EventPriority.NORMAL)
     public void onBlockPlace(BlockPlaceEvent event) {
         Block block = event.getBlockPlaced();
 		RealFluidsBlock rfblock = plugin.getBlock(block.getLocation());
@@ -44,13 +51,13 @@ public class RealFluidsBlockListener extends BlockListener {
 		checkForAdjacentBlockUpdate(event.getBlock());
     }
     
-    @Override
+    @EventHandler(priority = EventPriority.NORMAL)
     public void onBlockFromTo(BlockFromToEvent event) {
 	//cancel the flow event as it is not wanted
         event.setCancelled(true);
     }
 	
-	@Override
+	@EventHandler(priority = EventPriority.NORMAL)
 	public void onBlockBreak(BlockBreakEvent event) {
 		checkForAdjacentBlockUpdate(event.getBlock());
 	}

@@ -5,9 +5,11 @@
 
 package mindless728.RealFluids;
 
+import org.bukkit.Bukkit;
+
 import org.bukkit.block.Block;
-import org.bukkit.event.Event.Priority;
-import org.bukkit.event.Event.Type;
+import org.bukkit.event.EventPriority;
+//import org.bukkit.event.Event.Type;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.Location;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -49,7 +51,7 @@ public class RealFluids extends JavaPlugin implements Runnable {
 	int lavaStartLevel = 100;
 	int maxBucketLevel = 100;
     double minimumDifferenceLevelFraction = 0.05;
-    int repeatRate = 2;
+    int repeatRate = 5;
 	long maxFlowTimePerRepeat = 25000000;
     double simsPerRepeatFraction = 0.5;
     double flowDownFraction = 0.5;
@@ -58,11 +60,11 @@ public class RealFluids extends JavaPlugin implements Runnable {
 	HashMap<Integer,Boolean> lavaOverwriteList;
     
     public RealFluids() {
-        blockListener = new RealFluidsBlockListener(this);
-		playerListener = new RealFluidsPlayerListener(this);
 		flowEvents = new LinkedHashSet<RealFlowEvent>();
 		waterOverwriteList = new HashMap<Integer,Boolean>();
 		lavaOverwriteList = new HashMap<Integer,Boolean>();
+
+		waterOverwriteList.put(0,true);
 		
 		RealFlowEvent.setPlugin(this);
 		tempLoc = new Location(null,0,0,0);
@@ -89,15 +91,11 @@ public class RealFluids extends JavaPlugin implements Runnable {
 		loadProperties();
 	
     	scheduler = this.getServer().getScheduler();
-    	scheduler.scheduleSyncRepeatingTask(this, this, 1, repeatRate);
+    	scheduler.scheduleSyncRepeatingTask(this, this, 20, repeatRate);
         
-    	getServer().getPluginManager().registerEvent(Type.BLOCK_PLACE, blockListener, Priority.Low, this);
-    	getServer().getPluginManager().registerEvent(Type.BLOCK_FROMTO, blockListener, Priority.Low, this);
-		getServer().getPluginManager().registerEvent(Type.BLOCK_BREAK, blockListener, Priority.Low, this);
+        blockListener = new RealFluidsBlockListener(this);
+	playerListener = new RealFluidsPlayerListener(this);
 
-		getServer().getPluginManager().registerEvent(Type.PLAYER_BUCKET_EMPTY, playerListener, Priority.High, this);
-		getServer().getPluginManager().registerEvent(Type.PLAYER_BUCKET_FILL, playerListener, Priority.High, this);
-        
         System.out.println(getDescription().getName()+" version "+getDescription().getVersion()+" enabled");
     }
     
@@ -109,9 +107,8 @@ public class RealFluids extends JavaPlugin implements Runnable {
 		String s;
 		int i;
 		boolean b;
-		Scanner scanner;
 		try {
-			scanner = new Scanner(new File(dataFile));
+			Scanner scanner = new Scanner(new File(dataFile));
 			while(scanner.hasNext()) {
 				s = scanner.next();
 				if(s.equals("WaterStartLevel:"))
@@ -147,6 +144,7 @@ public class RealFluids extends JavaPlugin implements Runnable {
 		} catch(FileNotFoundException fnfe) {
 			saveProperties();
 		} catch(Exception e) {
+			saveProperties();
 			System.out.println("*** RealFluids: Error in configuration file ***");
 		}
 	}
@@ -382,15 +380,20 @@ public class RealFluids extends JavaPlugin implements Runnable {
 		int ave = getBlockAverage(block,lrfb);
 		int diff = 0;
 		int minDiff = 0;
+
 		
 		if(block.getY() < 127)
 			above = getAboveBlock(block);
+
+		System.out.println("rendu1");
 		
 		for(RealFluidsBlock rfb : lrfb) {
 			diff = ave - rfb.getLevel();
 			minDiff = (int)(minimumDifferenceLevelFraction * rfb.getLevel());
 			tempId = rfb.getTypeId();
+			System.out.println("rendu "+ave+" "+diff+" "+rfb.getLevel()+" "+block.getLevel());
 			if((Math.abs(diff) > minDiff) && (isOverwrittable(blockId, tempId) || tempId == 19 || sameFluid(tempId, blockId))) {
+				System.out.println("New_Event "+ave);
 				rfb.setLevel(rfb.getLevel()+diff);
 				//rfb.getBlock().setData((byte)getMetaData(rfb.getLevel()));
 				//if(rfb.getLevel() == 0)
@@ -399,11 +402,14 @@ public class RealFluids extends JavaPlugin implements Runnable {
 					overwriteBlock(rfb,blockId);
 				block.setLevel(block.getLevel()-diff);
 				//block.getBlock().setData((byte)getMetaData(block.getLevel()));
+				
 				if(ave != 0)
 					flowEvents.add(new RealFlowEvent(rfb));
 			}
 		}
 		
+		System.out.println("rendu3");
+
 		if(ave == 0 || block.getLevel() == 0) {
 			block.setLevel(0);
 			block.setTypeId(0);
@@ -475,7 +481,7 @@ public class RealFluids extends JavaPlugin implements Runnable {
 			getServer().getPluginManager().callEvent(front);
 			if(front.isCancelled())
 				continue;
-			
+
 			flow = front.getFlow();
 			if(flow == RealFluidsFlowType.WATER_HORIZONTAL ||
 				flow == RealFluidsFlowType.LAVA_HORIZONTAL ||
@@ -489,11 +495,11 @@ public class RealFluids extends JavaPlugin implements Runnable {
 					flowUp(front.getBlock());
 			}
 			elapsed = System.nanoTime() - time;
-			//System.out.println("Elapsed: "+elapsed);
+			System.out.println("Elapsed: "+elapsed);
 		}
 		
-		//time = System.nanoTime() - time;
-		/*if(i != 0)
-			System.out.println("Sims: "+i+", Time: "+time+", Sims/s: "+((long)1000000000)*i/time);*/
+		time = System.nanoTime() - time;
+		if(i != 0)
+			System.out.println("Sims: "+i+", Time: "+time+", Sims/s: "+((long)1000000000)*i/time);
 	}
 }
